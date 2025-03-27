@@ -98,7 +98,6 @@ peaks.pop(0)
 
 peaks = np.asarray(peaks).astype(int)  # Convert to int
 
-
 #%% Passing this to Neurokit algorithm
 
 '''
@@ -139,4 +138,4 @@ plt.close()
 
 
 for i in range(len(peaks)):
-    ax1.text(peaks[i], -600, f"{peaks[i]}", ha='center', fontsize=10, color='red')
+    ax1.text(peaks[i], np.max(data), f"{peaks[i]}", ha='center', fontsize=10, color='red')
