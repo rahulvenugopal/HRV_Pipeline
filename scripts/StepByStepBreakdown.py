@@ -70,7 +70,7 @@ num_qrs = min(beg_qrs.size, end_qrs.size)
 # The minimum acceptable duration of QRS complexes are set at mean of QRS complexes
 min_len = np.mean(end_qrs[:num_qrs] - beg_qrs[:num_qrs]) * minlenweight
 
-# Peep into the QRS windows and look for an R peak
+# Peep into the QRS windows and look for an R peak in the cleaned DATA
 peaks = [0]
 
 for i in range(num_qrs):
@@ -78,12 +78,13 @@ for i in range(num_qrs):
     end = end_qrs[i]
     len_qrs = end - beg
 
-    if len_qrs < min_len:
-        continue
+    # if len_qrs < min_len:
+    #     continue
 
     # Find local maxima and their prominence within QRS.
     data_qrs = data[beg:end]
     # Find peaks index and return left base, right base and prominences
+    # The algorithm is blind to troughs
     locmax, props = scipy.signal.find_peaks(data_qrs, prominence=(None, None))
 
     if locmax.size > 0: # If a peak is detected
@@ -139,3 +140,19 @@ plt.close()
 
 for i in range(len(peaks)):
     ax1.text(peaks[i], np.max(data), f"{peaks[i]}", ha='center', fontsize=10, color='red')
+    
+#%% Plot the peaks
+
+peak = beg + locmax[[0,1]]
+
+plt.plot(data_qrs)
+for locations in range(len(peak)): 
+    # Mark peaks with dots
+    plt.plot(peak[locations], data_qrs[peak[locations]], "ro", markersize=8, label="Peaks")
+
+plt.plot(peak[1], data_qrs[peak[1]], "go", markersize=15, alpha=0.5, label="Selected peak")
+plt.legend()
+
+fig.savefig('Negative peak identification.png', dpi = 600)
+plt.close()
+
