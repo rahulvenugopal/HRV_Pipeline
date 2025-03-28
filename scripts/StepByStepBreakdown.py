@@ -28,7 +28,7 @@ fig = plt.gcf()
 fig.savefig('Raw data.png', dpi = 600)
 plt.close()
 
-#%% Find the gradient and absolite of the same
+#%% Find the gradient and absolute of the same
 grad = np.gradient(data)
 absgrad = np.abs(grad)
 
