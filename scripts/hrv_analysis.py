@@ -4,7 +4,7 @@ Created on Tue Mar 17 19:50:51 2026
 
 HRV Analysis Pipeline using NeuroKit2
 
-Processes BrainVision (.vhdr) ECG recordings to extract HRV params
+Processes ECG recordings to extract HRV params
 
 Resources:
     1. NeuroKit2 Paper  : https://link.springer.com/article/10.3758%2Fs13428-020-01516-y
@@ -37,10 +37,10 @@ matplotlib.rcParams['agg.path.chunksize'] = 10000
 matplotlib.use('Agg')
 
 # Setting up the folders
-data_dir    = Path(filedialog.askdirectory(title='Select directory containing .vhdr files'))
+data_dir    = Path(filedialog.askdirectory(title='Select directory containing data files'))
 results_dir = Path(filedialog.askdirectory(title='Select directory to save results'))
 
-filelist = sorted(data_dir.glob('**/*.vhdr'))   # recurse into sub-folders
+filelist = sorted(data_dir.glob('**/*.fif'))   # recurse into sub-folders
 
 # Setting up the logger text file
 logging.basicConfig(
@@ -56,17 +56,17 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 if not filelist:
-    log.error("No .vhdr files found under: %s", data_dir)
+    log.error("No EEG files found under: %s", data_dir)
     raise SystemExit("No data files found — aborting.")
 
-log.info("Found %d .vhdr file(s) to process.", len(filelist))
+log.info("Found %d EEG file(s) to process.", len(filelist))
 
 # Initilise a list to collect subject HRV DataFrames and concat once at the end 
 masterlist = [] 
 
-for file_no, vhdr_path in enumerate(filelist, start=1):
+for file_no, eeg_path in enumerate(filelist, start=1):
 
-    fname = vhdr_path.stem
+    fname = eeg_path.stem
     log.info("── [%d/%d] Processing: %s", file_no,
              len(filelist),
              fname)
@@ -78,7 +78,7 @@ for file_no, vhdr_path in enumerate(filelist, start=1):
     try:
 
         # Load raw data
-        raw = mne.io.read_raw_brainvision(str(vhdr_path), 
+        raw = mne.io.read_raw_fif(str(eeg_path), 
                                           preload=True,
                                           verbose=False)
         srate = raw.info['sfreq']
@@ -175,7 +175,7 @@ for file_no, vhdr_path in enumerate(filelist, start=1):
         n_bad     = int(np.sum(bad_mask))
         pct_bad   = 100.0 * n_bad / len(rr_ms) if len(rr_ms) > 0 else 0.0
 
-        log.info("   RR intervals — total: %d  |  implausible: %d (%.1f%%)",
+        log.info("RR intervals — total: %d  |  implausible: %d (%.1f%%)",
                  len(rr_ms), n_bad, pct_bad)
 
         # Flag the recording quality in the output CSV so you can filter later.
@@ -186,26 +186,7 @@ for file_no, vhdr_path in enumerate(filelist, start=1):
             log.warning("%.1f%% implausible RR intervals — "
                         "HRV metrics may be unreliable.", pct_bad)
         else:
-            data_quality_flag = 'OK'
-
-        # Interpolate over implausible intervals using linear interpolation.
-        # nk.intervals_process() replaces bad values with interpolated ones and
-        # returns a cleaned RR series alongside a report dict.
-        #
-        # Why linear and not cubic?
-        #   Cubic splines can overshoot when multiple bad beats are consecutive.
-        #   Linear is conservative and safe for isolated outliers.
-        #   Switch to "cubic" only if your data has very smooth HR dynamics.
-        rr_corrected, rr_info = nk.intervals_process(
-            rr_ms,
-            intervals_type="RR",
-            method="linear",
-            low=RR_MIN_MS,
-            high=RR_MAX_MS,
-        )
-
-        n_interpolated = int(rr_info.get('intervals_interpolated', n_bad))
-        log.info("   RR intervals interpolated: %d", n_interpolated)
+            data_quality_flag = 'OK'            
 
         # Breathing rate estimated from ECG (ECG-derived respiration)
         ecg_rate_signal = nk.ecg_rate(
@@ -250,7 +231,6 @@ for file_no, vhdr_path in enumerate(filelist, start=1):
         hrv_df['n_rr_total']        = len(rr_ms)
         hrv_df['n_rr_bad']          = n_bad               # count outside 300-1500 ms
         hrv_df['pct_rr_bad']        = round(pct_bad, 2)   # % implausible
-        hrv_df['n_rr_interpolated'] = n_interpolated      # how many were replaced
         hrv_df['data_quality_flag'] = data_quality_flag   # 'OK' or 'POOR'
 
         # Quality-check plot  (cleaned ECG + R-peak annotations)
@@ -284,7 +264,7 @@ master_df = pd.concat(masterlist, axis=0, ignore_index=True)
 # Move identifier columns to the front for easier spreadsheet reading.
 # Quality columns come first so they're immediately visible when you open the CSV.
 id_cols     = ['filename', 'data_quality_flag', 'mean_sqi',
-               'n_rpeaks', 'n_rr_total', 'n_rr_bad', 'pct_rr_bad', 'n_rr_interpolated',
+               'n_rpeaks', 'n_rr_total', 'n_rr_bad', 'pct_rr_bad',
                'is_inverted', 'mean_resp_rate', 'sd_resp_rate']
 other_cols  = [c for c in master_df.columns if c not in id_cols]
 master_df   = master_df[id_cols + other_cols]

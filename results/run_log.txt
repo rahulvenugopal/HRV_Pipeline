@@ -1,0 +1,11 @@
+13:03:01  [INFO]  Found 1 EEG file(s) to process.
+13:03:01  [INFO]     Sampling rate: 1000.0 Hz | Channels: ['F3', 'F4', 'O1', 'O2', 'ECG1', 'ECG2']
+13:03:01  [INFO]     ECG signal length: 240001 samples (240.0 s)
+13:03:03  [INFO]     Signal inverted: False
+13:03:06  [INFO]     Signal quality (SQI): 0.882  (0=unusable, 1=perfect)
+13:03:07  [INFO]  RR intervals — total: 310  |  implausible: 1 (0.3%)
+13:03:08  [INFO]  EDR — mean resp rate: 15.52  SD: 5.28 (breaths/min)
+13:03:12  [INFO]  Done — 311 R-peaks retained.
+13:03:12  [INFO]  Pipeline complete.
+13:03:12  [INFO]  Subjects processed : 1 / 1
+13:03:12  [INFO]  Output CSV         : C:\Users\Admin\Desktop\HRV_adventures\results\hrv_parameters_mastersheet.csv
