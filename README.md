@@ -1,21 +1,22 @@
 # HRV analysis
-- Data was acquired using brain products actiChanp plus
-- EEG electrodes (11 and 22) were used for ECG data collection in lead I config
-- ECG1 going to 11 (left) and ECG2 to 22 (right)
-- Did ECG2-ECG1 ( RA-LA as per Lead I system)
-- mne-python has good amount of features in in-built visualisation
+- Batch Processing: Recursively churns through all files in a selected directory without crashing.
+- Auto-detects the ECG channel polarity and automatically corrects inverted signals.
+- Calculates a Signal Quality Index (SQI) and skips recordings that are too noisy to trust.
+- Uses the Lipponen algorithm for ectopics/missed beats, plus a custom cubic-spline interpolation for massive outliers to keep our time-series continuous and pure.
+- Extracts breathing rates (EDR) directly from the heart rate signal.
+- Generates quality-check plots and HRV summary images for every subject, compiled alongside a single, clean master CSV with all our metrics.
 
 # Neurokit2 based analysis and viz
 Raw ECG trace looked like this with baseline correction
-![Raw trace](https://github.com/rahulvenugopal/HRV_adventures/blob/main/results/After_baseline_correction.jpg)
+![Raw trace](https://github.com/rahulvenugopal/HRV_adventures/blob/main/ECGLeadPlacementVerification/After_baseline_correction.jpg)
 ---
 
 Time domain, Frequency domain and Non-linear methods
-![Parameters](https://github.com/rahulvenugopal/HRV_adventures/blob/main/results/All_parameters_HRV.png)
+![Parameters](https://github.com/rahulvenugopal/HRV_adventures/blob/main/ECGLeadPlacementVerification/All_parameters_HRV.png)
 ---
 
 General visualisations
-![Overall viz](https://github.com/rahulvenugopal/HRV_adventures/blob/main/results/Summary_HRV.png)
+![Overall viz](https://github.com/rahulvenugopal/HRV_adventures/blob/main/ECGLeadPlacementVerification/Summary_HRV.png)
 ---
 
 # Documentation of features from functions [page](https://github.com/neuropsychology/NeuroKit/tree/master/neurokit2/hrv)
@@ -25,7 +26,7 @@ General visualisations
 `lf=(0.04, 0.15)`
 `hf=(0.15, 0.4)`
 `vhf=(0.4, 0.5)`
-- For instance, 1, 2 and 5 minutes of high quality signal are the recomended minima for HF, LF and LF/HF, respectively
+- For instance, 1, 2 and 5 minutes of high quality signal are the recommended minima for HF, LF and LF/HF, respectively
 ---
 
 # **Characteristics of the Poincaré Plot Geometry**:
