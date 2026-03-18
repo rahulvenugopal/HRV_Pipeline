@@ -115,9 +115,10 @@ for file_no, eeg_path in enumerate(filelist, start=1):
         log.info("   Signal inverted: %s", is_inverted)
         
         # Primary ECG processing (cleaning + peak detection)
-        signals, ecg_info = nk.ecg_process(ecg_signal, sampling_rate=srate)
+        signals, ecg_info = nk.ecg_process(ecg_signal, 
+                                           sampling_rate=srate)
 
-        # ── STEP: Signal Quality Index (SQI) ─────────────────────────────────
+        # Signal Quality Index (SQI)
         # nk.ecg_quality() returns a per-sample score between 0 (unusable) and
         # 1 (perfect).  We average across the whole recording to get one number.
         # This must run AFTER ecg_process (we need ECG_Clean + R-peak locations)
@@ -128,7 +129,7 @@ for file_no, eeg_path in enumerate(filelist, start=1):
             sampling_rate=srate,
         )
         mean_sqi = float(np.mean(quality_scores))
-        log.info("   Signal quality (SQI): %.3f  (0=unusable, 1=perfect)", mean_sqi)
+        log.info("Signal quality (SQI): %.3f  (0=unusable, 1=perfect)", mean_sqi)
 
         # Hard threshold: if the signal is too noisy, HRV metrics will be
         # unreliable.  We log a warning and skip rather than silently produce
@@ -136,10 +137,16 @@ for file_no, eeg_path in enumerate(filelist, start=1):
         # adjust based on your recording conditions.
         SQI_THRESHOLD = 0.5
         if mean_sqi < SQI_THRESHOLD:
-            log.warning("   ✗ SQI %.3f < %.1f — signal too noisy, skipping %s.",
+            log.warning("SQI %.3f < %.1f — signal too noisy, skipping %s.",
                         mean_sqi, SQI_THRESHOLD, fname)
             continue   # jump to next subject; this one is not added to masterlist
-
+        
+        # Under the hood, Neurokit uses a kickass algorithm
+        # Read the paper -https://pubmed.ncbi.nlm.nih.gov/31314618/ by
+        # Lipponen & Tarvainen (2019)
+        
+        # Instead of using hard physiological cutoffs It calculates a rolling
+        # median of the surrounding RR intervals
         _, peaks_info = nk.ecg_peaks(
             signals['ECG_Clean'],
             correct_artifacts=True,   # removes ectopics and missed beats
