@@ -165,7 +165,7 @@ for file_no, eeg_path in enumerate(filelist, start=1):
         signals['ECG_R_Peaks'] = 0
         signals.loc[ecg_info['ECG_R_Peaks'], 'ECG_R_Peaks'] = 1
 
-        # ── STEP: RR Interval Physiological Filtering + Interpolation ────────
+        # RR Interval Physiological Filtering + Interpolation
         # Convert R-peak sample indices → RR intervals in milliseconds.
         # np.diff() gives the gap between consecutive peaks in samples;
         # dividing by srate converts to seconds, ×1000 gives milliseconds.
