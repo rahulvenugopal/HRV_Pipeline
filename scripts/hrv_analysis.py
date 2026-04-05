@@ -171,6 +171,15 @@ for file_no, eeg_path in enumerate(filelist, start=1):
         # dividing by srate converts to seconds, ×1000 gives milliseconds.
         rr_ms = np.diff(ecg_info['ECG_R_Peaks']) / srate * 1000
 
+        # Export RR interval time series as well
+        tachogram = peaks_info['ECG_fixpeaks_rr']
+        
+        df_tacho = pd.DataFrame(tachogram, 
+                                columns=['RR_Intervals'])
+    
+        # Export as csv
+        df_tacho.to_csv(fname + '.csv', index=False)
+
         # Physiological bounds:
         #   300 ms → 200 BPM  (upper heart rate limit, e.g. during tachycardia)
         #  1500 ms →  40 BPM  (lower limit; below this is likely a missed beat)
